@@ -17,7 +17,8 @@ type User struct {
 
 type Order struct {
 	ID         int
-	CustomerID int
+	UserEmail  string
+	TotalPrice float64
 	CreatedAt  time.Time
 }
 
