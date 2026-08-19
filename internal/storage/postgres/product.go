@@ -23,7 +23,7 @@ func (s *Storage) CreateProduct(ctx context.Context, p models.Product) error {
 	const fn = "storage.postgres.product.CreateProduct"
 
 	_, err := s.db.Exec(ctx,
-		`INSERT INTO products (name, price, stock) VALUES ($1, $2, $3) RETURNING id`,
+		`INSERT INTO products (name, price, stock) VALUES ($1, $2, $3)`,
 		p.Name, p.Price, p.Stock)
 
 	if err != nil {
@@ -32,6 +32,7 @@ func (s *Storage) CreateProduct(ctx context.Context, p models.Product) error {
 
 	return nil
 }
+
 func (s *Storage) GetProductByID(ctx context.Context, id int) (models.Product, error) {
 	const fn = "storage.postgres.product.GetProductByID"
 
