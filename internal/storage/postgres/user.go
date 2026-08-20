@@ -2,13 +2,8 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
-)
-
-var (
-	ErrUserNotFound = errors.New("user not found")
 )
 
 func (s *Storage) CreateUser(ctx context.Context, user models.User) error {

@@ -72,7 +72,6 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO: возожно поменять сигнатуру, чтобы возвращать (id, error), а не только error
 	err := h.storage.CreateUser(r.Context(), user)
 	if err != nil {
 		log.Error("failed to create user", slog.Any("error", err))

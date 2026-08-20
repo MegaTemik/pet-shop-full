@@ -88,9 +88,9 @@ func (_m *Orders) GetOrderByID(ctx context.Context, id int) (models.Order, error
 	return r0, r1
 }
 
-// GetOrderItemsByOrderID provides a mock function with given fields: orderID
-func (_m *Orders) GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error) {
-	ret := _m.Called(orderID)
+// GetOrderItemsByOrderID provides a mock function with given fields: ctx, orderID
+func (_m *Orders) GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error) {
+	ret := _m.Called(ctx, orderID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetOrderItemsByOrderID")
@@ -98,19 +98,19 @@ func (_m *Orders) GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error
 
 	var r0 []models.OrderItem
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int) ([]models.OrderItem, error)); ok {
-		return rf(orderID)
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]models.OrderItem, error)); ok {
+		return rf(ctx, orderID)
 	}
-	if rf, ok := ret.Get(0).(func(int) []models.OrderItem); ok {
-		r0 = rf(orderID)
+	if rf, ok := ret.Get(0).(func(context.Context, int) []models.OrderItem); ok {
+		r0 = rf(ctx, orderID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.OrderItem)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int) error); ok {
-		r1 = rf(orderID)
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, orderID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -118,9 +118,9 @@ func (_m *Orders) GetOrderItemsByOrderID(orderID int) ([]models.OrderItem, error
 	return r0, r1
 }
 
-// GetOrdersByUserEmail provides a mock function with given fields: email
-func (_m *Orders) GetOrdersByUserEmail(email string) ([]models.Order, error) {
-	ret := _m.Called(email)
+// GetOrdersByUserEmail provides a mock function with given fields: ctx, email
+func (_m *Orders) GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error) {
+	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetOrdersByUserEmail")
@@ -128,19 +128,19 @@ func (_m *Orders) GetOrdersByUserEmail(email string) ([]models.Order, error) {
 
 	var r0 []models.Order
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]models.Order, error)); ok {
-		return rf(email)
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.Order, error)); ok {
+		return rf(ctx, email)
 	}
-	if rf, ok := ret.Get(0).(func(string) []models.Order); ok {
-		r0 = rf(email)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.Order); ok {
+		r0 = rf(ctx, email)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Order)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(email)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}

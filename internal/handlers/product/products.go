@@ -34,6 +34,7 @@ func New(log *slog.Logger, storage Products) *Handler {
 		storage: storage,
 	}
 }
+
 func (h *Handler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	const fn = "handlers.products.GetAllProducts"
 	log := h.log.With(

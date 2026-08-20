@@ -3,6 +3,7 @@ package user
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"go-pet-shop/internal/handlers/user/mocks"
 	"go-pet-shop/internal/models"
 	"log/slog"
@@ -123,12 +124,14 @@ func TestGetUserByEmail_Fail(t *testing.T) {
 	}
 }
 
+// Добавить к v1 email
 func TestGetUserByEmail_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
 	GetUserByEmailMock := mocks.NewUsers(t)
 
+	email := ""
 	// Создаем HTTP запрос GET /products/{email}
-	req := httptest.NewRequest(http.MethodGet, "/users/", nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/users/%s", email), nil)
 	w := httptest.NewRecorder()
 
 	// Создаем хендлер с мок-хранилищем
