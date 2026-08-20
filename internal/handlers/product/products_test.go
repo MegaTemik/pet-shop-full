@@ -38,7 +38,7 @@ func TestGetAllProducts_Success(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", w.Code)
 	}
 }
-func TestGetAllProducts_Error(t *testing.T) {
+func TestGetAllProducts_Fail(t *testing.T) {
 	// Мокаем storage — он будет возвращать ошибку
 	GetAllProductsMock := mocks.NewProducts(t)
 	GetAllProductsMock.
@@ -71,7 +71,8 @@ func TestCreateProduct_Success(t *testing.T) {
 	CreateProductMock := mocks.NewProducts(t)
 	CreateProductMock.
 		On("CreateProduct", mock.Anything, mock.Anything).
-		Return(nil)
+		Return(nil).
+		Once()
 
 	// Создаем HTTP-запрос POST /products
 	input := "{\"name\": \"Dog Food\", \"price\": 19.99, \"stock\": 10}"
@@ -371,7 +372,8 @@ func TestGetProductByID_BadRequest(t *testing.T) {
 	GetProductByIDMock := mocks.NewProducts(t)
 
 	// Создаем HTTP Запрос GET /products/{id}
-	req := httptest.NewRequest(http.MethodGet, "/products/", nil)
+	id := "not-a-number"
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/products/%s", id), nil)
 	w := httptest.NewRecorder()
 
 	// Создаем хендлер с мок-хранилищем
