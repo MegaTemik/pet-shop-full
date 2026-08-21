@@ -37,6 +37,7 @@ func New(log *slog.Logger, storage Products) *Handler {
 
 func (h *Handler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	const fn = "handlers.products.GetAllProducts"
+
 	log := h.log.With(
 		slog.String("fn", fn),
 		slog.String("request_id", middleware.GetReqID(r.Context())),
@@ -103,14 +104,14 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
+	//TODO: in v1 w.WriteHeader to move upper
 	if product.Stock < 0 {
 		log.Error("product stock is negative", slog.Int("stock", product.Stock))
+		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error":   "Bad request",
 			"message": "Product stock cannot be negative",
 		})
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

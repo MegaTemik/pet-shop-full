@@ -21,6 +21,12 @@ type Orders interface {
 	GetOrderByID(ctx context.Context, id int) (models.Order, error)
 	GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error)
 	GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error)
+	PlaceOrder(ctx context.Context, userEmail string, items []models.OrderItem) (orderID int, err error)
+}
+
+type PlaceOrderRequest struct {
+	UserEmail string             `json:"user_email"`
+	Items     []models.OrderItem `json:"items"`
 }
 
 type Handler struct {
@@ -350,5 +356,58 @@ func (h *Handler) GetOrderItemsByOrderID(w http.ResponseWriter, r *http.Request)
 		"status": "Order items retrieved successfully",
 		"id":     id,
 		"items":  orderItems,
+	})
+}
+
+func (h *Handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
+	const fn = "handlers.orders.PlaceOrder"
+
+	log := h.log.With(
+		slog.String("fn", fn),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	log.Info("Placing new order", slog.String("url", r.URL.String()))
+
+	var orderItems PlaceOrderRequest
+	if err := render.DecodeJSON(r.Body, &orderItems); err != nil {
+		log.Error("failed to decode request body", slog.Any("error", err))
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Invalid JSON payload",
+		})
+		return
+	}
+
+	for _, item := range orderItems.Items {
+		if item.Quantity < 0 {
+			log.Error("quantity is negative", slog.Int("quantity", item.Quantity))
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, map[string]string{
+				"error":   "Bad request",
+				"message": "Quantity cannot be negative",
+			})
+			return
+		}
+	}
+
+	orderID, err := h.storage.PlaceOrder(r.Context(), orderItems.UserEmail, orderItems.Items)
+	if err != nil {
+		log.Error("failed to place order", slog.Any("error", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
+			"error":   "Internal server error",
+			"message": "Failed to place order",
+		})
+		return
+	}
+
+	log.Info("Order placed successfully", slog.String("user_email", orderItems.UserEmail), slog.Int("order_id", orderID))
+
+	render.JSON(w, r, map[string]interface{}{
+		"status":     "Order placed successfully",
+		"order_id":   orderID,
+		"user_email": orderItems.UserEmail,
 	})
 }
