@@ -71,8 +71,6 @@ func main() {
 	router.Get("/orders/{id}", orderHandler.GetOrderByID)
 	router.Get("/users/orders", orderHandler.GetOrdersByUserEmail)
 
-	router.Get("/orders/{id}/items", orderHandler.GetOrderItemsByOrderID)
-
 	// Settings and started server
 	srv := &http.Server{
 		Addr:         cfg.HTTPServer.Address,
