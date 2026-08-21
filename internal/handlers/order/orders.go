@@ -2,12 +2,13 @@ package order
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
+	"go-pet-shop/internal/storage"
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -202,9 +203,7 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 
 	order, err := h.storage.GetOrderByID(r.Context(), id)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "not found") ||
-			strings.Contains(strings.ToLower(err.Error()), "no rows") ||
-			strings.Contains(strings.ToLower(err.Error()), "rows affected: 0") {
+		if errors.Is(err, storage.ErrNotFound) {
 			log.Warn("order not found", slog.Int("id", id))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]string{
@@ -229,10 +228,27 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		slog.String("url", r.URL.String()),
 	)
 
+	items, err := h.storage.GetOrderItemsByOrderID(r.Context(), id)
+	if err != nil {
+		log.Error("failed to retrieve order items", slog.Any("error", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
+			"error":   "Internal server error",
+			"message": "Failed to retrieve order items",
+		})
+		return
+	}
+
+	log.Info("Order items retrieved successfully",
+		slog.Int("order_id", id),
+		slog.String("url", r.URL.String()),
+	)
+
 	render.JSON(w, r, map[string]interface{}{
 		"status": "Order retrieved successfully",
 		"id":     id,
 		"order":  order,
+		"items":  items,
 	})
 }
 
@@ -259,9 +275,7 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := h.storage.GetOrdersByUserEmail(r.Context(), email)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "not found") ||
-			strings.Contains(strings.ToLower(err.Error()), "no rows") ||
-			strings.Contains(strings.ToLower(err.Error()), "rows affected: 0") {
+		if errors.Is(err, storage.ErrNotFound) {
 			log.Warn("orders not found", slog.String("email", email))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]interface{}{
@@ -288,74 +302,6 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 		"status": "Orders retrieved successfully",
 		"email":  email,
 		"orders": orders,
-	})
-}
-
-func (h *Handler) GetOrderItemsByOrderID(w http.ResponseWriter, r *http.Request) {
-	const fn = "handlers.orders.getOrderItemsByOrderID"
-
-	log := h.log.With(
-		slog.String("fn", fn),
-		slog.String("request_id", middleware.GetReqID(r.Context())),
-	)
-
-	log.Info("Getting order items", slog.String("url", r.URL.String()))
-
-	idStr := chi.URLParam(r, "id")
-	if idStr == "" {
-		log.Error("empty order id in URL")
-		w.WriteHeader(http.StatusBadRequest)
-		render.JSON(w, r, map[string]string{
-			"error":   "Bad request",
-			"message": "ID is required",
-		})
-		return
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		log.Error("invalid id format", slog.Any("error", err), slog.String("id", idStr))
-		w.WriteHeader(http.StatusBadRequest)
-		render.JSON(w, r, map[string]string{
-			"error":   "Bad request",
-			"message": "ID must be a number",
-		})
-		return
-	}
-
-	orderItems, err := h.storage.GetOrderItemsByOrderID(r.Context(), id)
-	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "not found") ||
-			strings.Contains(strings.ToLower(err.Error()), "no rows") ||
-			strings.Contains(strings.ToLower(err.Error()), "rows affected: 0") {
-			log.Warn("order items not found", slog.Int("id", id))
-			w.WriteHeader(http.StatusNotFound)
-			render.JSON(w, r, map[string]interface{}{
-				"error":   "Not found",
-				"message": fmt.Sprintf("Order items with order ID %d do not exist", id),
-				"id":      id,
-			})
-			return
-		}
-
-		log.Error("failed to get order items by order ID", slog.Any("error", err))
-		w.WriteHeader(http.StatusInternalServerError)
-		render.JSON(w, r, map[string]string{
-			"error":   "Internal server error",
-			"message": "Failed to retrieve order items",
-		})
-		return
-	}
-
-	log.Info("Retrieved order items successfully",
-		slog.String("url", r.URL.String()),
-		slog.Int("id", id),
-	)
-
-	render.JSON(w, r, map[string]interface{}{
-		"status": "Order items retrieved successfully",
-		"id":     id,
-		"items":  orderItems,
 	})
 }
 
@@ -394,6 +340,15 @@ func (h *Handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 
 	orderID, err := h.storage.PlaceOrder(r.Context(), orderItems.UserEmail, orderItems.Items)
 	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			log.Error("failed to place order", slog.Any("error", err))
+			w.WriteHeader(http.StatusNotFound)
+			render.JSON(w, r, map[string]string{
+				"error":   "Not found",
+				"message": "User or product not found",
+			})
+			return
+		}
 		log.Error("failed to place order", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{

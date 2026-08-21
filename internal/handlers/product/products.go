@@ -2,8 +2,10 @@ package product
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
+	"go-pet-shop/internal/storage"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -360,10 +362,7 @@ func (h *Handler) GetProductByID(w http.ResponseWriter, r *http.Request) {
 
 	item, err := h.storage.GetProductByID(r.Context(), id)
 	if err != nil {
-		// Проверяем, является ли ошибка "не найдено" с помощью strings.Contains
-		if strings.Contains(strings.ToLower(err.Error()), "not found") ||
-			strings.Contains(strings.ToLower(err.Error()), "no rows") ||
-			strings.Contains(strings.ToLower(err.Error()), "rows affected: 0") {
+		if errors.Is(err, storage.ErrNotFound) {
 			log.Warn("product not found", slog.Int("id", id))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]interface{}{

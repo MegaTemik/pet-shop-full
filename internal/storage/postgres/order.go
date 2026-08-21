@@ -59,7 +59,7 @@ func (s *Storage) GetOrdersByUserEmail(ctx context.Context, email string) ([]mod
 	const fn = "storage.postgres.order.GetOrdersByUserEmail"
 
 	rows, err := s.db.Query(ctx,
-		`SELECT id, user_email, total_price, created_at FROM orders WHERE user_email = $1`, email)
+		`SELECT o.id, o.user_email, o.total_price, o.created_at FROM orders o JOIN users u ON u.email = o.user_email WHERE u.email = $1`, email)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
@@ -81,7 +81,6 @@ func (s *Storage) GetOrdersByUserEmail(ctx context.Context, email string) ([]mod
 	return orders, nil
 }
 
-// TODO: SELECT OR SELECT + JOIN
 func (s *Storage) GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error) {
 	const fn = "storage.postgres.order.GetOrderItemsByOrderID"
 
@@ -115,7 +114,10 @@ func (s *Storage) PlaceOrder(ctx context.Context, userEmail string, items []mode
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", fn, err)
 	}
-	defer tx.Rollback(ctx)
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
 
 	var totalSum float64
 	for _, item := range items {
