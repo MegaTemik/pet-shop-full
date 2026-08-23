@@ -28,3 +28,14 @@ type OrderItem struct {
 	ProductID int `json:"product_id"`
 	Quantity  int `json:"quantity"`
 }
+
+type OrderDetail struct {
+	Order  Order       `json:"order"`
+	Items  []OrderItem `json:"items"`
+	Status string      `json:"status"`
+}
+
+type PopularProduct struct {
+	Product Product `json:"product"`
+	Count   int     `json:"count"`
+}

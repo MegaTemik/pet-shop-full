@@ -106,3 +106,33 @@ func (s *Storage) DeleteProduct(ctx context.Context, id int) error {
 
 	return nil
 }
+
+func (s *Storage) GetPopularProducts(ctx context.Context) ([]models.PopularProduct, error) {
+	const fn = "storage.postgres.product.GetPopularProducts"
+
+	rows, err := s.db.Query(ctx,
+		`SELECT p.id, p.name, p.price, p.stock, SUM(oi.quantity) as sales_count
+		FROM products p
+		JOIN order_items oi ON p.id = oi.product_id
+		GROUP BY p.id
+		ORDER BY sales_count DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	defer rows.Close()
+
+	var popularProducts []models.PopularProduct
+	for rows.Next() {
+		var popularProduct models.PopularProduct
+		err := rows.Scan(&popularProduct.Product.ID, &popularProduct.Product.Name,
+			&popularProduct.Product.Price, &popularProduct.Product.Stock, &popularProduct.Count)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", fn, err)
+		}
+		popularProducts = append(popularProducts, popularProduct)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	return popularProducts, nil
+}

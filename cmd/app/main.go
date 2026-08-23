@@ -65,11 +65,13 @@ func main() {
 	router.Get("/products/{id}", productHandler.GetProductByID)
 	router.Put("/products/{id}", productHandler.UpdateProduct)
 	router.Delete("/products/{id}", productHandler.DeleteProduct)
+	router.Get("/products/popular", productHandler.GetPopularProducts)
 
 	router.Post("/orders", orderHandler.CreateOrder)
 	router.Post("/orders/{id}/items", orderHandler.AddOrderItem)
 	router.Get("/orders/{id}", orderHandler.GetOrderByID)
 	router.Get("/users/orders", orderHandler.GetOrdersByUserEmail)
+	router.Get("/users/history", orderHandler.GetUserOrderHistory)
 
 	router.Post("/checkout", orderHandler.PlaceOrder)
 

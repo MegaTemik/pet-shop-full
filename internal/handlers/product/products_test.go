@@ -389,3 +389,59 @@ func TestGetProductByID_BadRequest(t *testing.T) {
 		t.Fatalf("expected status 400, got %d", w.Code)
 	}
 }
+
+func TestGetPopularProducts_Success(t *testing.T) {
+	GetPopularProductsMock := mocks.NewProducts(t)
+	GetPopularProductsMock.
+		On("GetPopularProducts", mock.Anything).
+		Return([]models.PopularProduct{
+			{
+				Product: models.Product{
+					ID:    1,
+					Name:  "Яблоко",
+					Price: 100,
+					Stock: 1000,
+				},
+				Count: 500,
+			},
+		}, nil).
+		Once()
+
+	req := httptest.NewRequest(http.MethodGet, "/products/popular", nil)
+	w := httptest.NewRecorder()
+
+	handler := New(slog.Default(), GetPopularProductsMock)
+	handler.GetPopularProducts(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestGetPopularProducts_Fail(t *testing.T) {
+	GetPopularProductsMock := mocks.NewProducts(t)
+	GetPopularProductsMock.
+		On("GetPopularProducts", mock.Anything).
+		Return([]models.PopularProduct{
+			{
+				Product: models.Product{
+					ID:    1,
+					Name:  "Яблоко",
+					Price: 100,
+					Stock: 1000,
+				},
+				Count: 500,
+			},
+		}, errors.New("server error")).
+		Once()
+
+	req := httptest.NewRequest(http.MethodGet, "/products/popular", nil)
+	w := httptest.NewRecorder()
+
+	handler := New(slog.Default(), GetPopularProductsMock)
+	handler.GetPopularProducts(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", w.Code)
+	}
+}

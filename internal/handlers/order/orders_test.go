@@ -337,3 +337,91 @@ func TestPlaceOrder_BadRequest(t *testing.T) {
 		t.Fatalf("expected status 400, got %d", w.Code)
 	}
 }
+
+func TestGetUserOrderHistory_Success(t *testing.T) {
+	GetUserOrderHistoryMock := mocks.NewOrders(t)
+	GetUserOrderHistoryMock.
+		On("GetUserOrderHistory", mock.Anything, mock.Anything).
+		Return([]models.OrderDetail{
+			{
+				Order: models.Order{
+					ID:         1,
+					UserEmail:  "Bob@gmail.com",
+					TotalPrice: 1000,
+					CreatedAt:  time.Now(),
+				},
+				Items: []models.OrderItem{
+					{
+						ID:        1,
+						OrderID:   1,
+						ProductID: 1,
+						Quantity:  10,
+					},
+				},
+				Status: "success",
+			},
+		}, nil).
+		Once()
+	email := "Bob@gmail.com"
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/users/history?email=%s", email), nil)
+	w := httptest.NewRecorder()
+
+	handler := New(slog.Default(), GetUserOrderHistoryMock)
+	handler.GetUserOrderHistory(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", w.Code)
+	}
+}
+
+func TestGetUserOrderHistory_Fail(t *testing.T) {
+	GetUserOrderHistoryMock := mocks.NewOrders(t)
+	GetUserOrderHistoryMock.
+		On("GetUserOrderHistory", mock.Anything, mock.Anything).
+		Return([]models.OrderDetail{
+			{
+				Order: models.Order{
+					ID:         1,
+					UserEmail:  "Bob@gmail.com",
+					TotalPrice: 1000,
+					CreatedAt:  time.Now(),
+				},
+				Items: []models.OrderItem{
+					{
+						ID:        1,
+						OrderID:   1,
+						ProductID: 1,
+						Quantity:  10,
+					},
+				},
+				Status: "success",
+			},
+		}, errors.New("server error")).
+		Once()
+
+	email := "Bob@gmail.com"
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/users/history?email=%s", email), nil)
+	w := httptest.NewRecorder()
+
+	handler := New(slog.Default(), GetUserOrderHistoryMock)
+	handler.GetUserOrderHistory(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected status 500, got %d", w.Code)
+	}
+}
+
+func TestGetUserOrderHistory_BadRequest(t *testing.T) {
+	GetUserOrderHistoryMock := mocks.NewOrders(t)
+
+	email := ""
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/users/history?email=%s", email), nil)
+	w := httptest.NewRecorder()
+
+	handler := New(slog.Default(), GetUserOrderHistoryMock)
+	handler.GetUserOrderHistory(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", w.Code)
+	}
+}

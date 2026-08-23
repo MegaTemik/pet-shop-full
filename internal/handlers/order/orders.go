@@ -23,6 +23,7 @@ type Orders interface {
 	GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error)
 	GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error)
 	PlaceOrder(ctx context.Context, userEmail string, items []models.OrderItem) (orderID int, err error)
+	GetUserOrderHistory(ctx context.Context, email string) ([]models.OrderDetail, error)
 }
 
 type PlaceOrderRequest struct {
@@ -253,7 +254,7 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
-	const fn = "handlers.orders.getOrdersByUserEmail"
+	const fn = "handlers.orders.GetOrdersByUserEmail"
 
 	log := h.log.With(
 		slog.String("fn", fn),
@@ -291,6 +292,7 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 			"error":   "Internal server error",
 			"message": "Failed to retrieve orders",
 		})
+		return
 	}
 
 	log.Info("Retrieved orders successfully",
@@ -364,5 +366,60 @@ func (h *Handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 		"status":     "Order placed successfully",
 		"order_id":   orderID,
 		"user_email": orderItems.UserEmail,
+	})
+}
+
+func (h *Handler) GetUserOrderHistory(w http.ResponseWriter, r *http.Request) {
+	const fn = "handlers.orders.GetUserOrderHistory"
+
+	log := h.log.With(
+		slog.String("fn", fn),
+		slog.String("request_id", middleware.GetReqID(r.Context())),
+	)
+
+	log.Info("Getting order history by user", slog.String("url", r.URL.String()))
+
+	email := r.URL.Query().Get("email")
+	if email == "" {
+		log.Error("empty email")
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
+			"error":   "Bad request",
+			"message": "Order email is required",
+		})
+		return
+	}
+
+	orderHistory, err := h.storage.GetUserOrderHistory(r.Context(), email)
+	if err != nil {
+		if errors.Is(err, storage.ErrNotFound) {
+			log.Warn("order history not found", slog.String("email", email))
+			w.WriteHeader(http.StatusNotFound)
+			render.JSON(w, r, map[string]interface{}{
+				"error":   "Not found",
+				"message": fmt.Sprintf("Order history with email %s does not exist", email),
+				"email":   email,
+			})
+			return
+		}
+		log.Error("failed to get order history by email", slog.Any("error", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
+			"error":   "Internal server error",
+			"message": "Failed to retrieve order history",
+		})
+		return
+	}
+
+	log.Info("Retrieved order history successfully",
+		slog.String("url", r.URL.String()),
+		slog.String("email", email),
+		slog.Int("count", len(orderHistory)),
+	)
+
+	render.JSON(w, r, map[string]interface{}{
+		"status":        "Order history retrieved successfully",
+		"email":         email,
+		"order_history": orderHistory,
 	})
 }

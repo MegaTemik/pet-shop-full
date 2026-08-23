@@ -161,3 +161,44 @@ func (s *Storage) PlaceOrder(ctx context.Context, userEmail string, items []mode
 
 	return
 }
+
+func (s *Storage) GetUserOrderHistory(ctx context.Context, email string) ([]models.OrderDetail, error) {
+	const fn = "storage.postgres.order.GetUserOrderHistory"
+
+	rows, err := s.db.Query(ctx,
+		`SELECT o.id, o.user_email, o.total_price, o.created_at 
+		FROM orders o
+		JOIN users u ON o.user_email = u.email
+		WHERE u.email = $1`, email)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	defer rows.Close()
+
+	var ordersHistory []models.OrderDetail
+	for rows.Next() {
+		var order models.Order
+		if err := rows.Scan(&order.ID, &order.UserEmail, &order.TotalPrice, &order.CreatedAt); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return []models.OrderDetail{}, fmt.Errorf("%s: %w", fn, storage.ErrNotFound)
+			}
+			return nil, fmt.Errorf("%s: %w", fn, err)
+		}
+
+		orderItems, err := s.GetOrderItemsByOrderID(ctx, order.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", fn, err)
+		}
+
+		ordersDetail := models.OrderDetail{
+			Order:  order,
+			Items:  orderItems,
+			Status: "success",
+		}
+		ordersHistory = append(ordersHistory, ordersDetail)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	return ordersHistory, nil
+}
