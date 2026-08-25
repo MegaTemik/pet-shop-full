@@ -2,8 +2,12 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
+	"go-pet-shop/internal/storage"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func (s *Storage) CreateUser(ctx context.Context, user models.User) error {
@@ -25,6 +29,9 @@ func (s *Storage) GetUserByEmail(ctx context.Context, email string) (models.User
 	err := s.db.QueryRow(ctx,
 		`SELECT id, name, email FROM users WHERE email = $1`, email).Scan(&user.ID, &user.Name, &user.Email)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.User{}, storage.ErrNotFound
+		}
 		return models.User{}, fmt.Errorf("%s: %w", fn, err)
 	}
 	return user, nil

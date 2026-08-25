@@ -17,7 +17,7 @@ import (
 
 func TestGetAllUsers_Success(t *testing.T) {
 	// Мокаем storage - он будет возвращать список пользователей
-	GetAllUsersMock := mocks.NewUsers(t)
+	GetAllUsersMock := mocks.NewUserService(t)
 	GetAllUsersMock.
 		On("GetAllUsers", mock.Anything).
 		Return([]models.User{
@@ -44,7 +44,7 @@ func TestGetAllUsers_Success(t *testing.T) {
 
 func TestGetAllUsers_Fail(t *testing.T) {
 	// Мокаем storage - он будет возвращать ошибку
-	GetAllUsersMock := mocks.NewUsers(t)
+	GetAllUsersMock := mocks.NewUserService(t)
 	GetAllUsersMock.
 		On("GetAllUsers", mock.Anything).
 		Return(nil, errors.New("server error")).
@@ -68,7 +68,7 @@ func TestGetAllUsers_Fail(t *testing.T) {
 
 func TestGetUserByEmail_Success(t *testing.T) {
 	// Мокаем storage - он будет возвращать пользователя
-	GetUserByEmailMock := mocks.NewUsers(t)
+	GetUserByEmailMock := mocks.NewUserService(t)
 	GetUserByEmailMock.
 		On("GetUserByEmail", mock.Anything, "john.doe@example.com").
 		Return(models.User{ID: 1, Name: "John Doe", Email: "john.doe@example.com"}, nil).
@@ -97,7 +97,7 @@ func TestGetUserByEmail_Success(t *testing.T) {
 
 func TestGetUserByEmail_Fail(t *testing.T) {
 	// Мокаем storage - он будет возвращать ошибку
-	GetUserByEmailMock := mocks.NewUsers(t)
+	GetUserByEmailMock := mocks.NewUserService(t)
 	GetUserByEmailMock.
 		On("GetUserByEmail", mock.Anything, mock.Anything).
 		Return(models.User{}, errors.New("DB error")).
@@ -124,10 +124,9 @@ func TestGetUserByEmail_Fail(t *testing.T) {
 	}
 }
 
-// Добавить к v1 email
 func TestGetUserByEmail_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	GetUserByEmailMock := mocks.NewUsers(t)
+	GetUserByEmailMock := mocks.NewUserService(t)
 
 	email := ""
 	// Создаем HTTP запрос GET /products/{email}
@@ -148,7 +147,7 @@ func TestGetUserByEmail_BadRequest(t *testing.T) {
 
 func TestCreateUser_Success(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	CreateUserMock := mocks.NewUsers(t)
+	CreateUserMock := mocks.NewUserService(t)
 	CreateUserMock.
 		On("CreateUser", mock.Anything, mock.Anything).
 		Return(nil).
@@ -173,7 +172,7 @@ func TestCreateUser_Success(t *testing.T) {
 
 func TestCreateUser_Fail(t *testing.T) {
 	// Мокаем storage - он будет возвращать ошибку
-	CreateUserMock := mocks.NewUsers(t)
+	CreateUserMock := mocks.NewUserService(t)
 	CreateUserMock.
 		On("CreateUser", mock.Anything, mock.Anything).
 		Return(errors.New("server error")).
@@ -198,7 +197,7 @@ func TestCreateUser_Fail(t *testing.T) {
 
 func TestCreateUser_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	CreateUserMock := mocks.NewUsers(t)
+	CreateUserMock := mocks.NewUserService(t)
 
 	// Создаем HTTP запрос POST /users
 	input := "{\"name\": \"\", \"email\": \"\"}"

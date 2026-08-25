@@ -16,10 +16,11 @@ type User struct {
 }
 
 type Order struct {
-	ID         int       `json:"id"`
-	UserEmail  string    `json:"user_email"`
-	TotalPrice float64   `json:"total_price"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID         int         `json:"id"`
+	UserEmail  string      `json:"user_email"`
+	TotalPrice float64     `json:"total_price"`
+	CreatedAt  time.Time   `json:"created_at"`
+	Items      []OrderItem `json:"items"`
 }
 
 type OrderItem struct {

@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreateOrder_Success(t *testing.T) {
-	CreateOrderMock := mocks.NewOrders(t)
+	CreateOrderMock := mocks.NewOrderService(t)
 	CreateOrderMock.
 		On("CreateOrder", mock.Anything, mock.Anything).
 		Return(1, nil).
@@ -37,7 +37,7 @@ func TestCreateOrder_Success(t *testing.T) {
 }
 
 func TestCreateOrder_Fail(t *testing.T) {
-	CreateOrderMock := mocks.NewOrders(t)
+	CreateOrderMock := mocks.NewOrderService(t)
 	CreateOrderMock.
 		On("CreateOrder", mock.Anything, mock.Anything).
 		Return(0, errors.New("server error")).
@@ -57,7 +57,7 @@ func TestCreateOrder_Fail(t *testing.T) {
 }
 
 func TestCreateOrder_BadRequest(t *testing.T) {
-	CreateOrderMock := mocks.NewOrders(t)
+	CreateOrderMock := mocks.NewOrderService(t)
 
 	input := "{\"user_email\": \"\", \"total_price\": 100.0}" // Empty email
 	req := httptest.NewRequest(http.MethodPost, "/orders", bytes.NewReader([]byte(input)))
@@ -73,7 +73,7 @@ func TestCreateOrder_BadRequest(t *testing.T) {
 }
 
 func TestAddOrderItem_Success(t *testing.T) {
-	AddOrderItemMock := mocks.NewOrders(t)
+	AddOrderItemMock := mocks.NewOrderService(t)
 	AddOrderItemMock.
 		On("AddOrderItem", mock.Anything, mock.Anything).
 		Return(nil).
@@ -97,7 +97,7 @@ func TestAddOrderItem_Success(t *testing.T) {
 }
 
 func TestAddOrderItem_Fail(t *testing.T) {
-	AddOrderItemMock := mocks.NewOrders(t)
+	AddOrderItemMock := mocks.NewOrderService(t)
 	AddOrderItemMock.
 		On("AddOrderItem", mock.Anything, mock.Anything).
 		Return(errors.New("server error")).
@@ -121,7 +121,7 @@ func TestAddOrderItem_Fail(t *testing.T) {
 }
 
 func TestAddOrderItem_BadRequest(t *testing.T) {
-	AddOrderItemMock := mocks.NewOrders(t)
+	AddOrderItemMock := mocks.NewOrderService(t)
 
 	r := chi.NewRouter()
 
@@ -141,7 +141,7 @@ func TestAddOrderItem_BadRequest(t *testing.T) {
 }
 
 func TestGetOrderByID_Success(t *testing.T) {
-	GetOrderByIDMock := mocks.NewOrders(t)
+	GetOrderByIDMock := mocks.NewOrderService(t)
 	GetOrderByIDMock.
 		On("GetOrderByID", mock.Anything, mock.Anything).
 		Return(models.Order{
@@ -167,7 +167,7 @@ func TestGetOrderByID_Success(t *testing.T) {
 }
 
 func TestGetOrderByID_Fail(t *testing.T) {
-	GetOrderByIDMock := mocks.NewOrders(t)
+	GetOrderByIDMock := mocks.NewOrderService(t)
 	GetOrderByIDMock.
 		On("GetOrderByID", mock.Anything, mock.Anything).
 		Return(models.Order{}, errors.New("server error")).
@@ -190,7 +190,7 @@ func TestGetOrderByID_Fail(t *testing.T) {
 }
 
 func TestGetOrderById_BadRequest(t *testing.T) {
-	GetOrderByIDMock := mocks.NewOrders(t)
+	GetOrderByIDMock := mocks.NewOrderService(t)
 
 	r := chi.NewRouter()
 
@@ -209,7 +209,7 @@ func TestGetOrderById_BadRequest(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_Success(t *testing.T) {
-	GetOrdersByUserEmailMock := mocks.NewOrders(t)
+	GetOrdersByUserEmailMock := mocks.NewOrderService(t)
 	GetOrdersByUserEmailMock.
 		On("GetOrdersByUserEmail", mock.Anything, mock.Anything).
 		Return([]models.Order{
@@ -235,7 +235,7 @@ func TestGetOrdersByUserEmail_Success(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_Fail(t *testing.T) {
-	GetOrdersByUserEmailMock := mocks.NewOrders(t)
+	GetOrdersByUserEmailMock := mocks.NewOrderService(t)
 	GetOrdersByUserEmailMock.
 		On("GetOrdersByUserEmail", mock.Anything, mock.Anything).
 		Return([]models.Order{}, errors.New("server error")).
@@ -255,7 +255,7 @@ func TestGetOrdersByUserEmail_Fail(t *testing.T) {
 }
 
 func TestGetOrdersByUserEmail_BadRequest(t *testing.T) {
-	GetOrdersByUserEmailMock := mocks.NewOrders(t)
+	GetOrdersByUserEmailMock := mocks.NewOrderService(t)
 
 	email := ""
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/users/orders?email=%s", email), nil)

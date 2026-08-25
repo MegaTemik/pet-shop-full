@@ -38,7 +38,7 @@ func (s *Storage) GetProductByID(ctx context.Context, id int) (models.Product, e
 		`SELECT id, name, price, stock FROM products WHERE id = $1`, id).Scan(&product.ID, &product.Name, &product.Price, &product.Stock)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return models.Product{}, fmt.Errorf("%s: %w", fn, storage.ErrNotFound)
+			return models.Product{}, storage.ErrNotFound
 		}
 		return models.Product{}, fmt.Errorf("%s: %w", fn, err)
 	}

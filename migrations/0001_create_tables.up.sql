@@ -18,6 +18,7 @@ CREATE TABLE orders (
     total_price NUMERIC NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_orders_user_email ON orders(user_email);
 
 CREATE TABLE order_items (
     id SERIAL PRIMARY KEY,
@@ -25,6 +26,8 @@ CREATE TABLE order_items (
     product_id INT REFERENCES products(id),
     quantity INT NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
 
 CREATE TABLE transactions (
     id SERIAL PRIMARY KEY,
@@ -33,3 +36,4 @@ CREATE TABLE transactions (
     status TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_transactions_order_id ON transactions(order_id);
