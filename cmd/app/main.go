@@ -7,8 +7,8 @@ import (
 	"go-pet-shop/internal/handlers/product"
 	"go-pet-shop/internal/handlers/user"
 	"go-pet-shop/internal/lib/logger"
-	productService "go-pet-shop/internal/service/product"
-	userService "go-pet-shop/internal/service/user"
+	product_service "go-pet-shop/internal/service/product"
+	user_service "go-pet-shop/internal/service/user"
 	"go-pet-shop/internal/storage/postgres"
 	"log/slog"
 	"net/http"
@@ -44,8 +44,8 @@ func main() {
 		log.Info("storage closed")
 	}()
 
-	productService := productService.NewProductService(storage)
-	userService := userService.NewUserService(storage)
+	productService := product_service.NewProductService(storage)
+	userService := user_service.NewUserService(storage)
 
 	// Init router
 	router := chi.NewRouter()
