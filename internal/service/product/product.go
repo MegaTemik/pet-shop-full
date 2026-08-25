@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"go-pet-shop/internal/models"
+	"go-pet-shop/internal/service"
 	"go-pet-shop/internal/storage"
-)
-
-var (
-	ErrNotFound = errors.New("not found")
 )
 
 type ProductService struct {
@@ -43,7 +40,7 @@ func (s *ProductService) GetProductByID(ctx context.Context, id int) (models.Pro
 	product, err := s.storage.GetProductByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
-			return models.Product{}, ErrNotFound
+			return models.Product{}, service.ErrNotFound
 		}
 		return models.Product{}, err
 	}
@@ -64,7 +61,7 @@ func (s *ProductService) UpdateProduct(ctx context.Context, product models.Produ
 	err := s.storage.UpdateProduct(ctx, product)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
-			return ErrNotFound
+			return service.ErrNotFound
 		}
 		return err
 	}
@@ -76,7 +73,7 @@ func (s *ProductService) DeleteProduct(ctx context.Context, id int) error {
 	err := s.storage.DeleteProduct(ctx, id)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
-			return ErrNotFound
+			return service.ErrNotFound
 		}
 		return err
 	}

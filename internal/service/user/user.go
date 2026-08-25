@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"go-pet-shop/internal/models"
+	"go-pet-shop/internal/service"
 	"go-pet-shop/internal/storage"
 )
 
@@ -37,7 +38,7 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (models.
 	user, err := s.storage.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
-			return models.User{}, ErrNotFound
+			return models.User{}, service.ErrNotFound
 		}
 		return models.User{}, err
 	}
