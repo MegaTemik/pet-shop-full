@@ -46,9 +46,9 @@ func main() {
 		log.Info("storage closed")
 	}()
 
-	productSvc := product_service.NewProductService(storage)
-	userSvc := user_service.NewUserService(storage)
-	orderSvc := order_service.NewOrderService(storage)
+	productService := product_service.NewProductService(storage)
+	userService := user_service.NewUserService(storage)
+	orderService := order_service.NewOrderService(storage)
 
 	// Init router
 	router := chi.NewRouter()
@@ -60,9 +60,9 @@ func main() {
 	router.Use(logger.CustomLogger(log))
 
 	// Handlers
-	productHandler := product_handler.New(log, productSvc)
-	userHandler := user_handler.New(log, userSvc)
-	orderHandler := order_handler.New(log, orderSvc)
+	productHandler := product_handler.New(log, productService)
+	userHandler := user_handler.New(log, userService)
+	orderHandler := order_handler.New(log, orderService)
 
 	router.Get("/status", handlers.StatusHandler)
 
