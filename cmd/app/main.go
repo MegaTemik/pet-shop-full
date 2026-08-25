@@ -4,8 +4,8 @@ import (
 	"context"
 	"go-pet-shop/internal/config"
 	"go-pet-shop/internal/handlers"
-	"go-pet-shop/internal/handlers/product"
-	"go-pet-shop/internal/handlers/user"
+	product_handler "go-pet-shop/internal/handlers/product"
+	user_handler "go-pet-shop/internal/handlers/user"
 	"go-pet-shop/internal/lib/logger"
 	product_service "go-pet-shop/internal/service/product"
 	user_service "go-pet-shop/internal/service/user"
@@ -57,8 +57,8 @@ func main() {
 	router.Use(logger.CustomLogger(log))
 
 	// Handlers
-	productHandler := product.New(log, productService)
-	userHandler := user.New(log, userService)
+	productHandler := product_handler.New(log, productService)
+	userHandler := user_handler.New(log, userService)
 
 	router.Get("/status", handlers.StatusHandler)
 
