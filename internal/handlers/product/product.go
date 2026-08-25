@@ -5,19 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
+	"go-pet-shop/internal/service"
 	"go-pet-shop/internal/storage"
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 )
 
-//go:generate go run github.com/vektra/mockery/v2 --name=Products
-type Products interface {
+//go:generate go run github.com/vektra/mockery/v2 --name=ProductService
+type ProductService interface {
 	CreateProduct(ctx context.Context, product models.Product) error
 	GetProductByID(ctx context.Context, id int) (models.Product, error)
 	GetAllProducts(ctx context.Context) ([]models.Product, error)
@@ -27,13 +27,13 @@ type Products interface {
 
 type Handler struct {
 	log     *slog.Logger
-	storage Products
+	service ProductService
 }
 
-func New(log *slog.Logger, storage Products) *Handler {
+func New(log *slog.Logger, service ProductService) *Handler {
 	return &Handler{
 		log:     log,
-		storage: storage,
+		service: service,
 	}
 }
 
@@ -45,7 +45,7 @@ func (h *Handler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	items, err := h.storage.GetAllProducts(r.Context())
+	items, err := h.service.GetAllProducts(r.Context())
 
 	if err != nil {
 		log.Error("failed to get products", slog.Any("error", err))
@@ -106,7 +106,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	//TODO: in v1 w.WriteHeader to move upper
+
 	if product.Stock < 0 {
 		log.Error("product stock is negative", slog.Int("stock", product.Stock))
 		w.WriteHeader(http.StatusBadRequest)
@@ -118,7 +118,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Создаем продукт
-	err := h.storage.CreateProduct(r.Context(), product)
+	err := h.service.CreateProduct(r.Context(), product)
 	if err != nil {
 		log.Error("failed to create product", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -175,11 +175,8 @@ func (h *Handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Удаляем продукт
-	if err := h.storage.DeleteProduct(r.Context(), id); err != nil {
-		// Проверяем, является ли ошибка "не найдено" с помощью strings.Contains
-		if strings.Contains(strings.ToLower(err.Error()), "not found") ||
-			strings.Contains(strings.ToLower(err.Error()), "no rows") ||
-			strings.Contains(strings.ToLower(err.Error()), "rows affected: 0") {
+	if err := h.service.DeleteProduct(r.Context(), id); err != nil {
+		if errors.Is(err, service.ErrNotFound) {
 			log.Warn("product not found for deletion", slog.Int("id", id))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]interface{}{
@@ -292,11 +289,8 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Обновляем продукт
-	if err := h.storage.UpdateProduct(r.Context(), product); err != nil {
-		// Проверяем, является ли ошибка "не найдено" с помощью strings.Contains
-		if strings.Contains(strings.ToLower(err.Error()), "not found") ||
-			strings.Contains(strings.ToLower(err.Error()), "no rows") ||
-			strings.Contains(strings.ToLower(err.Error()), "rows affected: 0") {
+	if err := h.service.UpdateProduct(r.Context(), product); err != nil {
+		if errors.Is(err, service.ErrNotFound) {
 			log.Warn("product not found for update", slog.Int("id", id))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]interface{}{
@@ -360,7 +354,7 @@ func (h *Handler) GetProductByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err := h.storage.GetProductByID(r.Context(), id)
+	item, err := h.service.GetProductByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			log.Warn("product not found", slog.Int("id", id))

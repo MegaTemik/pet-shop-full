@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
-	"go-pet-shop/internal/storage"
+	"go-pet-shop/internal/service"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -15,8 +15,8 @@ import (
 	"github.com/go-chi/render"
 )
 
-//go:generate go run github.com/vektra/mockery/v2 --name=Orders
-type Orders interface {
+//go:generate go run github.com/vektra/mockery/v2 --name=OrderService
+type OrderService interface {
 	CreateOrder(ctx context.Context, order models.Order) (int, error)
 	AddOrderItem(ctx context.Context, orderItem models.OrderItem) error
 	GetOrderByID(ctx context.Context, id int) (models.Order, error)
@@ -32,13 +32,13 @@ type PlaceOrderRequest struct {
 
 type Handler struct {
 	log     *slog.Logger
-	storage Orders
+	service OrderService
 }
 
-func New(log *slog.Logger, storage Orders) *Handler {
+func New(log *slog.Logger, service OrderService) *Handler {
 	return &Handler{
 		log:     log,
-		storage: storage,
+		service: service,
 	}
 }
 
@@ -54,6 +54,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	var order models.Order
 	if err := render.DecodeJSON(r.Body, &order); err != nil {
 		log.Error("failed to decode request body", slog.Any("error", err))
+		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error":   "Bad request",
 			"message": "Invalid JSON payload",
@@ -81,7 +82,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orderID, err := h.storage.CreateOrder(r.Context(), order)
+	orderID, err := h.service.CreateOrder(r.Context(), order)
 	if err != nil {
 		log.Error("failed to create order", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -147,7 +148,7 @@ func (h *Handler) AddOrderItem(w http.ResponseWriter, r *http.Request) {
 
 	orderItem.OrderID = orderID
 
-	err = h.storage.AddOrderItem(r.Context(), orderItem)
+	err = h.service.AddOrderItem(r.Context(), orderItem)
 	if err != nil {
 		log.Error("failed to add order item", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -201,9 +202,9 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order, err := h.storage.GetOrderByID(r.Context(), id)
+	order, err := h.service.GetOrderByID(r.Context(), id)
 	if err != nil {
-		if errors.Is(err, storage.ErrNotFound) {
+		if errors.Is(err, service.ErrNotFound) {
 			log.Warn("order not found", slog.Int("id", id))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]string{
@@ -228,17 +229,6 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		slog.String("url", r.URL.String()),
 	)
 
-	items, err := h.storage.GetOrderItemsByOrderID(r.Context(), id)
-	if err != nil {
-		log.Error("failed to retrieve order items", slog.Any("error", err))
-		w.WriteHeader(http.StatusInternalServerError)
-		render.JSON(w, r, map[string]string{
-			"error":   "Internal server error",
-			"message": "Failed to retrieve order items",
-		})
-		return
-	}
-
 	log.Info("Order items retrieved successfully",
 		slog.Int("order_id", id),
 		slog.String("url", r.URL.String()),
@@ -248,7 +238,6 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		"status": "Order retrieved successfully",
 		"id":     id,
 		"order":  order,
-		"items":  items,
 	})
 }
 
@@ -273,9 +262,9 @@ func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := h.storage.GetOrdersByUserEmail(r.Context(), email)
+	orders, err := h.service.GetOrdersByUserEmail(r.Context(), email)
 	if err != nil {
-		if errors.Is(err, storage.ErrNotFound) {
+		if errors.Is(err, service.ErrNotFound) {
 			log.Warn("orders not found", slog.String("email", email))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]interface{}{
@@ -338,9 +327,9 @@ func (h *Handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	orderID, err := h.storage.PlaceOrder(r.Context(), orderItems.UserEmail, orderItems.Items)
+	orderID, err := h.service.PlaceOrder(r.Context(), orderItems.UserEmail, orderItems.Items)
 	if err != nil {
-		if errors.Is(err, storage.ErrNotFound) {
+		if errors.Is(err, service.ErrNotFound) {
 			log.Error("failed to place order", slog.Any("error", err))
 			w.WriteHeader(http.StatusNotFound)
 			render.JSON(w, r, map[string]string{
