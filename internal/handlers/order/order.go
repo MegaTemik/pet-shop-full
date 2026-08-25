@@ -19,7 +19,7 @@ import (
 type OrderService interface {
 	CreateOrder(ctx context.Context, order models.Order) (int, error)
 	AddOrderItem(ctx context.Context, orderItem models.OrderItem) error
-	GetOrderByID(ctx context.Context, id int) (models.Order, error)
+	GetOrderByID(ctx context.Context, id int) (models.OrderDetail, error)
 	GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error)
 	GetOrderItemsByOrderID(ctx context.Context, orderID int) ([]models.OrderItem, error)
 	PlaceOrder(ctx context.Context, userEmail string, items []models.OrderItem) (orderID int, err error)
@@ -234,11 +234,7 @@ func (h *Handler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		slog.String("url", r.URL.String()),
 	)
 
-	render.JSON(w, r, map[string]interface{}{
-		"status": "Order retrieved successfully",
-		"id":     id,
-		"order":  order,
-	})
+	render.JSON(w, r, order)
 }
 
 func (h *Handler) GetOrdersByUserEmail(w http.ResponseWriter, r *http.Request) {
