@@ -4,13 +4,13 @@ import (
 	"context"
 	"go-pet-shop/internal/config"
 	"go-pet-shop/internal/handlers"
-	"go-pet-shop/internal/handlers/order"
-	"go-pet-shop/internal/handlers/product"
-	"go-pet-shop/internal/handlers/user"
+	order_handler "go-pet-shop/internal/handlers/order"
+	product_handler "go-pet-shop/internal/handlers/product"
+	user_handler "go-pet-shop/internal/handlers/user"
 	"go-pet-shop/internal/lib/logger"
-	orderservice "go-pet-shop/internal/service/order"
-	productservice "go-pet-shop/internal/service/product"
-	userservice "go-pet-shop/internal/service/user"
+	order_service "go-pet-shop/internal/service/order"
+	product_service "go-pet-shop/internal/service/product"
+	user_service "go-pet-shop/internal/service/user"
 	"go-pet-shop/internal/storage/postgres"
 	"log/slog"
 	"net/http"
@@ -46,9 +46,9 @@ func main() {
 		log.Info("storage closed")
 	}()
 
-	productService := productservice.NewProductService(storage)
-	userService := userservice.NewUserService(storage)
-	orderService := orderservice.NewOrderService(storage)
+	productSvc := product_service.NewProductService(storage)
+	userSvc := user_service.NewUserService(storage)
+	orderSvc := order_service.NewOrderService(storage)
 
 	// Init router
 	router := chi.NewRouter()
@@ -60,9 +60,9 @@ func main() {
 	router.Use(logger.CustomLogger(log))
 
 	// Handlers
-	productHandler := product.New(log, productService)
-	userHandler := user.New(log, userService)
-	orderHandler := order.New(log, orderService)
+	productHandler := product_handler.New(log, productSvc)
+	userHandler := user_handler.New(log, userSvc)
+	orderHandler := order_handler.New(log, orderSvc)
 
 	router.Get("/status", handlers.StatusHandler)
 
