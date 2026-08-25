@@ -44,23 +44,25 @@ func (os *OrderService) AddOrderItem(ctx context.Context, orderItem models.Order
 	return nil
 }
 
-func (os *OrderService) GetOrderByID(ctx context.Context, id int) (models.Order, error) {
+func (os *OrderService) GetOrderByID(ctx context.Context, id int) (models.OrderDetail, error) {
 
 	order, err := os.storage.GetOrderByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
-			return models.Order{}, service.ErrNotFound
+			return models.OrderDetail{}, service.ErrNotFound
 		}
-		return models.Order{}, err
+		return models.OrderDetail{}, err
 	}
 
 	items, err := os.storage.GetOrderItemsByOrderID(ctx, id)
 	if err != nil {
-		return models.Order{}, err
+		return models.OrderDetail{}, err
 	}
-	order.Items = items
 
-	return order, nil
+	return models.OrderDetail{
+		Order:      order,
+		OrderItems: items,
+	}, nil
 }
 
 func (os *OrderService) GetOrdersByUserEmail(ctx context.Context, email string) ([]models.Order, error) {

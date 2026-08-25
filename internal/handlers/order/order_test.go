@@ -144,11 +144,14 @@ func TestGetOrderByID_Success(t *testing.T) {
 	GetOrderByIDMock := mocks.NewOrderService(t)
 	GetOrderByIDMock.
 		On("GetOrderByID", mock.Anything, mock.Anything).
-		Return(models.Order{
-			ID:         1,
-			UserEmail:  "Bob",
-			TotalPrice: 111.1,
-			CreatedAt:  time.Now(),
+		Return(models.OrderDetail{
+			Order: models.Order{
+				ID:         1,
+				UserEmail:  "Bob",
+				TotalPrice: 111.1,
+				CreatedAt:  time.Now(),
+			},
+			OrderItems: []models.OrderItem{},
 		}, nil)
 
 	r := chi.NewRouter()
@@ -170,7 +173,7 @@ func TestGetOrderByID_Fail(t *testing.T) {
 	GetOrderByIDMock := mocks.NewOrderService(t)
 	GetOrderByIDMock.
 		On("GetOrderByID", mock.Anything, mock.Anything).
-		Return(models.Order{}, errors.New("server error")).
+		Return(models.OrderDetail{}, errors.New("server error")).
 		Once()
 
 	r := chi.NewRouter()

@@ -61,22 +61,22 @@ func (_m *OrderService) CreateOrder(ctx context.Context, _a1 models.Order) (int,
 }
 
 // GetOrderByID provides a mock function with given fields: ctx, id
-func (_m *OrderService) GetOrderByID(ctx context.Context, id int) (models.Order, error) {
+func (_m *OrderService) GetOrderByID(ctx context.Context, id int) (models.OrderDetail, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetOrderByID")
 	}
 
-	var r0 models.Order
+	var r0 models.OrderDetail
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) (models.Order, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) (models.OrderDetail, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) models.Order); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) models.OrderDetail); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(models.Order)
+		r0 = ret.Get(0).(models.OrderDetail)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
