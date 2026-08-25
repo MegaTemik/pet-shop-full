@@ -17,7 +17,7 @@ import (
 
 func TestGetAllProducts_Success(t *testing.T) {
 	// Мокаем storage — он вернёт один продукт.
-	GetAllProductsMock := mocks.NewProducts(t)
+	GetAllProductsMock := mocks.NewProductService(t)
 	GetAllProductsMock.
 		On("GetAllProducts", mock.Anything).
 		Return([]models.Product{{ID: 1, Name: "Dog Food"}}, nil).
@@ -40,7 +40,7 @@ func TestGetAllProducts_Success(t *testing.T) {
 }
 func TestGetAllProducts_Fail(t *testing.T) {
 	// Мокаем storage — он будет возвращать ошибку
-	GetAllProductsMock := mocks.NewProducts(t)
+	GetAllProductsMock := mocks.NewProductService(t)
 	GetAllProductsMock.
 		On("GetAllProducts", mock.Anything).
 		Return(nil, errors.New("DB error")).
@@ -68,7 +68,7 @@ func TestGetAllProducts_Fail(t *testing.T) {
 
 func TestCreateProduct_Success(t *testing.T) {
 	// Мокаем storage - он будет возвращать ID
-	CreateProductMock := mocks.NewProducts(t)
+	CreateProductMock := mocks.NewProductService(t)
 	CreateProductMock.
 		On("CreateProduct", mock.Anything, mock.Anything).
 		Return(nil).
@@ -93,7 +93,7 @@ func TestCreateProduct_Success(t *testing.T) {
 
 func TestCreateProduct_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	CreateProductMock := mocks.NewProducts(t)
+	CreateProductMock := mocks.NewProductService(t)
 
 	// Создаем HTTP запрос POST /products
 	input := "{\"name\": \"Cat Food\", \"price\": 50.00, \"stock\": 100"
@@ -114,7 +114,7 @@ func TestCreateProduct_BadRequest(t *testing.T) {
 
 func TestCreateProduct_Fail(t *testing.T) {
 	// Мокаем storage - он будет возвращать ошибку
-	CreateProductMock := mocks.NewProducts(t)
+	CreateProductMock := mocks.NewProductService(t)
 	CreateProductMock.
 		On("CreateProduct", mock.Anything, mock.Anything).
 		Return(errors.New("server error")).
@@ -143,7 +143,7 @@ func TestCreateProduct_Fail(t *testing.T) {
 
 func TestUpdateProduct_Success(t *testing.T) {
 	// Мокаем storage - он будет возвращать nil
-	UpdateProductMock := mocks.NewProducts(t)
+	UpdateProductMock := mocks.NewProductService(t)
 	UpdateProductMock.
 		On("UpdateProduct", mock.Anything, mock.Anything).
 		Return(nil).
@@ -173,7 +173,7 @@ func TestUpdateProduct_Success(t *testing.T) {
 
 func TestUpdateProduct_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	UpdateProductMock := mocks.NewProducts(t)
+	UpdateProductMock := mocks.NewProductService(t)
 
 	// Создаем роутер
 	r := chi.NewRouter()
@@ -199,7 +199,7 @@ func TestUpdateProduct_BadRequest(t *testing.T) {
 
 func TestUpdateProduct_Fail(t *testing.T) {
 	//Мокаем storage - он будет возвращать ошибку
-	UpdateProductMock := mocks.NewProducts(t)
+	UpdateProductMock := mocks.NewProductService(t)
 	UpdateProductMock.
 		On("UpdateProduct", mock.Anything, mock.Anything).
 		Return(errors.New("server error")).
@@ -233,7 +233,7 @@ func TestUpdateProduct_Fail(t *testing.T) {
 
 func TestDeleteProduct_Success(t *testing.T) {
 	// Мокаем storage - он будет возвращать nil
-	DeleteProductMock := mocks.NewProducts(t)
+	DeleteProductMock := mocks.NewProductService(t)
 	DeleteProductMock.
 		On("DeleteProduct", mock.Anything, mock.Anything).
 		Return(nil).
@@ -262,7 +262,7 @@ func TestDeleteProduct_Success(t *testing.T) {
 
 func TestDeleteProduct_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	DeleteProductMock := mocks.NewProducts(t)
+	DeleteProductMock := mocks.NewProductService(t)
 
 	// Создаем HTTP запрос DELETE /products/{id}
 	req := httptest.NewRequest(http.MethodDelete, "/products/", nil)
@@ -282,7 +282,7 @@ func TestDeleteProduct_BadRequest(t *testing.T) {
 
 func TestDeleteProduct_Fail(t *testing.T) {
 	// Мокаем storage - он будет возвращать ошибку
-	DeleteProductMock := mocks.NewProducts(t)
+	DeleteProductMock := mocks.NewProductService(t)
 	DeleteProductMock.
 		On("DeleteProduct", mock.Anything, mock.Anything).
 		Return(errors.New("server error")).
@@ -311,7 +311,7 @@ func TestDeleteProduct_Fail(t *testing.T) {
 
 func TestGetProductByID_Success(t *testing.T) {
 	// Мокаем storage - он будет возвращать продукт
-	GetProductByIDMock := mocks.NewProducts(t)
+	GetProductByIDMock := mocks.NewProductService(t)
 	GetProductByIDMock.
 		On("GetProductByID", mock.Anything, mock.Anything).
 		Return(models.Product{ID: 1, Name: "Dog Food"}, nil).
@@ -340,7 +340,7 @@ func TestGetProductByID_Success(t *testing.T) {
 
 func TestGetProductByID_Fail(t *testing.T) {
 	// Мокаем storage - он будет возвращать ошибку
-	GetProductByIDMock := mocks.NewProducts(t)
+	GetProductByIDMock := mocks.NewProductService(t)
 	GetProductByIDMock.
 		On("GetProductByID", mock.Anything, mock.Anything).
 		Return(models.Product{}, errors.New("DB error")).
@@ -369,7 +369,7 @@ func TestGetProductByID_Fail(t *testing.T) {
 
 func TestGetProductByID_BadRequest(t *testing.T) {
 	// Мокаем storage - он ничего не будет возвращать
-	GetProductByIDMock := mocks.NewProducts(t)
+	GetProductByIDMock := mocks.NewProductService(t)
 
 	// Создаем HTTP Запрос GET /products/{id}
 	id := "not-a-number"

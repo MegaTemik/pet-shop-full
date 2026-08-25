@@ -2,9 +2,12 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-pet-shop/internal/models"
 	"go-pet-shop/internal/storage"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // ❗ Памятка - Контекст не должен создаваться через context.Background() внутри методов.
@@ -35,6 +38,9 @@ func (s *Storage) GetProductByID(ctx context.Context, id int) (models.Product, e
 	err := s.db.QueryRow(ctx,
 		`SELECT id, name, price, stock FROM products WHERE id = $1`, id).Scan(&product.ID, &product.Name, &product.Price, &product.Stock)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.Product{}, storage.ErrNotFound
+		}
 		return models.Product{}, fmt.Errorf("%s: %w", fn, err)
 	}
 	return product, nil

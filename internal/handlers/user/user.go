@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/render"
 )
 
-//go:generate go run github.com/vektra/mockery/v2 --name=Users
-type Users interface {
+//go:generate go run github.com/vektra/mockery/v2 --name=UserService
+type UserService interface {
 	CreateUser(ctx context.Context, user models.User) error
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	GetAllUsers(ctx context.Context) ([]models.User, error)
@@ -20,13 +20,13 @@ type Users interface {
 
 type Handler struct {
 	log     *slog.Logger
-	storage Users
+	service UserService
 }
 
-func New(log *slog.Logger, storage Users) *Handler {
+func New(log *slog.Logger, service UserService) *Handler {
 	return &Handler{
 		log:     log,
-		storage: storage,
+		service: service,
 	}
 }
 
@@ -72,7 +72,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.storage.CreateUser(r.Context(), user)
+	err := h.service.CreateUser(r.Context(), user)
 	if err != nil {
 		log.Error("failed to create user", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -110,7 +110,7 @@ func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.storage.GetUserByEmail(r.Context(), email)
+	user, err := h.service.GetUserByEmail(r.Context(), email)
 	if err != nil {
 		log.Error("failed to get user by email", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -141,7 +141,7 @@ func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		slog.String("request_id", middleware.GetReqID(r.Context())),
 	)
 
-	users, err := h.storage.GetAllUsers(r.Context())
+	users, err := h.service.GetAllUsers(r.Context())
 	if err != nil {
 		log.Error("failed to get all users", slog.Any("error", err))
 		w.WriteHeader(http.StatusInternalServerError)
